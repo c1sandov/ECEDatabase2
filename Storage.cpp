@@ -14,11 +14,8 @@ namespace SF {
   const int gMultiplier = 37;
   
   uint32_t Storage::hashString(const char *str) {
-    uint32_t h{0};
-    unsigned char *p;
-    for (p = (unsigned char*)str; *p != '\0'; p++)
-      h = gMultiplier * h + *p;
-    return h;
+    uint32_t theResult=0;
+    return theResult;
   }
   
   Storage::Storage(const std::string aName) : master('M',0) {
@@ -74,7 +71,7 @@ namespace SF {
     return (uint32_t)((stream.tellg() - theStart)/kBlockSize);
   }
   
-  //scan archive for free blocks, and store them here. If you need more use block number for appended blocks...
+  //scan for free blocks, and store them here. If you need more use blockcount to append block...
   uint32_t Storage::getFreeBlock() {
     if(master.header.id) {
       //we have a free block...
