@@ -13,6 +13,7 @@
 #include <string>
 #include <fstream>
 #include <queue>
+#include "Keywords.hpp"
 
 namespace SF {
   
@@ -31,24 +32,24 @@ namespace SF {
       id=aCopy.id;
     }
     
-    char      type;  //block type {[F]ree, [M]aster (only1), [E]ntity, [R]ecord}
-    bool      dirty; //currently unused...
+    char      type;   //block type {[F]ree, [M]aster(singleton), [E]ntity, [R]ecord}
+    bool      dirty;  //currently unused...
     uint16_t  count;  //generic usage...
-    uint32_t  id; //just id?
+    uint32_t  id;     //id in most block; 1st free block for master...
   };
-
+  
   struct EntityDef {
-    char      name[18];
-    uint32_t  recordId;
+    uint32_t  hashId;
+    uint32_t  blockId;
   };
   
   struct AttributeDef {
     char    name[17];  //len=16, and a null-terminator...
-    char    type; //[F]loat, [C]har, [B]ool, [D]ate, [V]archar...
+    char    type; //[B]ool, [C]har, [D]ate, [F]loat, [T]able, [V]archar...
     uint8_t length;
     uint8_t extra; //bits to represent other features...
   };
-
+  
   //----- represents a single block in the storage file... -----------------
   
   struct Block {
@@ -57,9 +58,10 @@ namespace SF {
     
     Block(BlockHeader &aHeader) : header(aHeader), data() {}
     
+    //we use attributes[0] as table name...
     BlockHeader   header;
     union {
-      EntityDef     entities[(kBlockSize-sizeof(BlockHeader)/sizeof(EntityDef))]; //list of tables...
+      EntityDef     entities[(kBlockSize-sizeof(BlockHeader)/sizeof(EntityDef))]; //list of 95 tables...
       AttributeDef  attributes[(kBlockSize-sizeof(BlockHeader)/sizeof(AttributeDef))]; //schema fields...
       char          data[kBlockSize-sizeof(BlockHeader)];
     };
@@ -72,24 +74,32 @@ namespace SF {
     Block         master;
     std::fstream  stream;
     
-    int       seekBlock(int aBlockNumber, bool aWrite=false);
-    int       readBlock(int aBlockNumber, Block &aBlock, std::size_t aBlockSize=kBlockSize);
-    int       writeBlock(int aBlockNumber, Block &aBlock);
-    uint32_t  getFreeBlock();
-    int       getTotalBlockCount();
-    uint32_t  getAutoIncrement();
-    bool isReady();
-
+    bool          isReady();
+    uint32_t      getFreeBlock();
+    uint32_t      getTotalBlockCount();
+    uint32_t      getAutoIncrement();
+    
+    uint32_t      seekBlock(int aBlockNumber, bool aWrite=false);
+    StatusResult  readBlock(int aBlockNumber, Block &aBlock, std::size_t aBlockSize=kBlockSize);
+    StatusResult  writeBlock(int aBlockNumber, Block &aBlock);
+    
+    Storage(const Storage &aCopy); //prevent access...
+    
   public:
     
     Storage(const std::string aName);
     
-    Storage(const Storage &aCopy);
     
     ~Storage();
-
-    int makeEmpty(const std::string aName);
-        
+    
+    StatusResult makeEmpty(const std::string aName);
+    
+    StatusResult addEntity(const std::string &aName, uint32_t aPos);
+    
+    static uint32_t hashString(const char* aString);
+    
+    friend class Database;
+    
   };
   
 }

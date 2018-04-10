@@ -15,6 +15,10 @@ const int gNoDatabaseSpecified=300;
 const int gUnknownDatabase=400;
 const int gTableExists=500;
 const int gInvalidAttribute=600;
+const int gReadError=700;
+const int gWriteError=800;
+const int gSeekError=900;
+const int gStorageFull=1000;
 
 const int gUnknownCommand = 3000;
 const int gInvalidCommand = 3100;
@@ -31,7 +35,7 @@ namespace SF {
     float_kw, foreign_kw, from_kw,
     in_kw, insert_kw, int_kw, into_kw,
     key_kw,  not_kw,  null_kw, or_kw, primary_kw,
-    references_kw, select_kw, set_kw, show_kw, table_kw,
+    references_kw, select_kw, set_kw, show_kw, table_kw, tables_kw,
     unknown_kw, unique_kw, update_kw, use_kw,
     values_kw, varchar_kw, where_kw,
   };

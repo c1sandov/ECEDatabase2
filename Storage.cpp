@@ -11,6 +11,16 @@
 
 namespace SF {
   
+  const int gMultiplier = 37;
+  
+  uint32_t Storage::hashString(const char *str) {
+    uint32_t h{0};
+    unsigned char *p;
+    for (p = (unsigned char*)str; *p != '\0'; p++)
+      h = gMultiplier * h + *p;
+    return h;
+  }
+  
   Storage::Storage(const std::string aName) : master('M',0) {
     char thePath[128];
     sprintf(thePath,"/tmp/%s.%s",aName.c_str(),"db");
@@ -24,13 +34,17 @@ namespace SF {
   }
   
   Storage::~Storage() {
+    if(master.header.dirty) {
+      //save the master record...
+      writeBlock(0,master);
+    }
     stream.close();
   }
-
-  int Storage::makeEmpty(const std::string aName) {
+  
+  StatusResult Storage::makeEmpty(const std::string aName) {
     if (stream.fail()) {
       //file didn't exist, so let's make it...
-
+      
       char thePath[128];
       sprintf(thePath,"/tmp/%s.%s",aName.c_str(),"db");
       
@@ -39,7 +53,7 @@ namespace SF {
       stream.close();
       stream.open(thePath, std::fstream::binary | std::fstream::in | std::fstream::out); // Reopen for editing
     }
-
+    
     master.header.count=0; //init for new db...
     memset(master.data,0,sizeof(master.data));
     return writeBlock(0, master);
@@ -53,7 +67,7 @@ namespace SF {
     return ++master.header.id;
   }
   
-  int Storage::getTotalBlockCount() {
+  uint32_t Storage::getTotalBlockCount() {
     seekBlock(0);
     std::streampos theStart = stream.tellg();
     stream.seekg(0, std::fstream::end);
@@ -62,10 +76,14 @@ namespace SF {
   
   //scan archive for free blocks, and store them here. If you need more use block number for appended blocks...
   uint32_t Storage::getFreeBlock() {
-    return 0;
+    if(master.header.id) {
+      //we have a free block...
+    }
+    //otherwise append...
+    return getTotalBlockCount();
   }
   
-  int Storage::seekBlock(int aBlockNumber, bool aWrite) {
+  uint32_t Storage::seekBlock(int aBlockNumber, bool aWrite) {
     int thePos = aBlockNumber * kBlockSize;
     if(aWrite) {
       stream.seekp(thePos);
@@ -73,29 +91,36 @@ namespace SF {
       return thePos;
     }
     stream.seekg(thePos);
-    thePos = (int)stream.tellg();
-    return thePos;
+    return (thePos==(int)stream.tellg()) ? thePos : 0;
   }
   
-  int Storage::readBlock(int aBlockNumber, Block &aBlock, std::size_t aBlockSize) {
+  StatusResult Storage::readBlock(int aBlockNumber, Block &aBlock, std::size_t aBlockSize) {
     int thePos=seekBlock(aBlockNumber);
     if(thePos==(aBlockNumber*kBlockSize)) {
       stream.read ((char*)&aBlock.header, aBlockSize);
-      return (int)stream.gcount();
+      return StatusResult{true};
     }
-    return 0;
+    return StatusResult{false,gReadError};
   }
   
-  int Storage::writeBlock(int aBlockNumber, Block &aBlock) {
+  StatusResult Storage::writeBlock(int aBlockNumber, Block &aBlock) {
     std::cout<<"write-block " << aBlockNumber << std::endl;
-    if(aBlockNumber) master.header.dirty=true;
-    int thePos=seekBlock(aBlockNumber,true);
+    master.header.dirty=true;
+    uint32_t thePos=seekBlock(aBlockNumber,true);
     if(thePos==(aBlockNumber*kBlockSize)) {
       stream.write ((char*)&aBlock.header, kBlockSize);
       int theNewPos = (int)stream.tellp();
-      return thePos<theNewPos ? kBlockSize : 0;
+      if(thePos==theNewPos) return StatusResult{false, gWriteError};
     }
-    return 0;
+    return StatusResult{true};
+  }
+  
+  StatusResult Storage::addEntity(const std::string &aName, uint32_t aPos) {
+    master.header.count++;
+    master.entities[master.header.count].hashId=Storage::hashString(aName.c_str());
+    master.entities[master.header.count].blockId=aPos;
+    master.header.dirty=true;
+    return StatusResult{true};
   }
   
 }
