@@ -9,36 +9,38 @@
 #ifndef Database_hpp
 #define Database_hpp
 
+
 #include <stdio.h>
 #include <string>
 #include <vector>
 #include "Storage.hpp"
 #include "Tokenizer.hpp"
+#include "CommandProcessor.hpp"
 
 namespace SF {
   
-  class Database {
+  class Database : public ICommandable {
     
     std::string   name;
     Storage       storage;
     
     StatusResult createTable(Tokenizer &aTokenizer);
     int describeTable(std::string aUserCommand);
-
+    
   public:
     
     Database(const std::string aPath);
     
     Database(const Database &aDatabase);
-
-    ~Database();
-        
+    
+    virtual ~Database();
+    
     std::string& getName() {return name;}
     
     int initializeStorage();
     
-    StatusResult processSQL(std::string aSQLString);
-
+    virtual StatusResult handleCommand(std::string &aUserInput, ICommandable *aNext=nullptr);
+    
   };
   
 }

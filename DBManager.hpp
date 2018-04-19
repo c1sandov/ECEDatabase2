@@ -12,36 +12,37 @@
 #include <stdio.h>
 #include <string>
 #include "CommandProcessor.hpp"
+#include "Database.hpp"
 
 namespace SF {
   
-  class Database;
+  class Tokenizer;
   
   class DBManager : public ICommandable {
   protected:
-  
+    
     static DBManager manager;
-
+    
     Database      *active;
-  
-    DBManager&  releaseDB();
-    Database* findDatabase(std::string aName);
+    
+    Database*  findDatabase(std::string aName);
+    DBManager& releaseDB();
     
   public:
     
     DBManager();
     virtual ~DBManager();
-
+    
     static DBManager& getManager();
     
-      //db related commands...
+    //db related commands...
     StatusResult useDatabase(std::string aName);
     StatusResult createDatabase(std::string aName);
     StatusResult dropDatabase(std::string aName);
     StatusResult showDatabases();
-
+    
     virtual StatusResult  handleCommand(std::string &aUserInput, ICommandable *aNext);
-
+    
   };
   
 }

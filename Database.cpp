@@ -14,19 +14,19 @@ namespace SF {
   
   Database::Database(const std::string aName) : name(aName), storage(aName) {
   }
-
+  
   Database::Database(const Database &aCopy) : name(aCopy.name), storage(aCopy.storage) {
   }
-
+  
   Database::~Database() {
   }
- 
+  
   int Database::initializeStorage() {
     return storage.makeEmpty(name);
   }
   
   StatusResult Database::createTable(Tokenizer &aTokenizer) {
-    return StatusResult{};
+    return StatusResult{false};
   }
   
   int Database::describeTable(std::string aUserCommand) {
@@ -37,19 +37,19 @@ namespace SF {
     
     return 0;
   }
-
-  StatusResult Database::processSQL(std::string aSQLString) {
-    int theResult=0;
+  
+  StatusResult Database::handleCommand(std::string &aUserInput,
+                                       ICommandable *aNext) {
+    StatusResult theResult;
     
-    Tokenizer theTokenizer(aSQLString);
+    Tokenizer theTokenizer(aUserInput);
     theResult=theTokenizer.tokenize();
     
-    if(kNoError==theResult) {
+    if(theResult) {
       Token theToken = theTokenizer.tokenAt(0);
       Keywords theKW=theTokenizer.getKeywordId(theToken.data);
       switch(theKW) {
         case Keywords::create_kw: //create table...
-          theResult=createTable(theTokenizer);
           break;
           
         case Keywords::alter_kw:  //alter table...

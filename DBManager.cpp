@@ -14,7 +14,7 @@ namespace SF {
   
   DBManager DBManager::manager;
   
-  DBManager::DBManager() {
+  DBManager::DBManager(){
     active=nullptr;
   }
   
@@ -31,24 +31,10 @@ namespace SF {
   }
   
   Database* DBManager::findDatabase(const std::string aName) {
-    char thePath[128];
-    sprintf(thePath,"/tmp/%s.%s",aName.c_str(),"db");
-    
-    if (FILE *file = fopen(thePath, "r")) {
-      fclose(file);
-      Database *theDB=new Database(std::string(thePath));
-      return theDB;
-    }
     return nullptr;
   }
   
   StatusResult DBManager::createDatabase(const std::string aName) {
-    active=releaseDB().findDatabase(aName);
-    if(!active) {
-      active=new Database(aName);
-      active->initializeStorage();
-      return StatusResult{true};
-    }
     return StatusResult{false};
   }
   
@@ -67,7 +53,9 @@ namespace SF {
   }
   
   StatusResult DBManager::useDatabase(const std::string aName) {
-    //TBD...
+    if(Database *theDB=findDatabase(aName)) {
+      active=theDB;
+    }
     return StatusResult{false,gUnknownDatabase};
   }
   
@@ -91,21 +79,35 @@ namespace SF {
             return createDatabase(theNameToken.data);
           }
           else if(Keywords::table_kw==theType) {
-            //TDB
+            if(active) {
+              return active->handleCommand(aUserInput);
+            }
+            return StatusResult(false,gNoDatabaseSpecified);
           }
           
           break;
           
         case Keywords::drop_kw:
-          //TBD...
+          theResult=dropDatabase(theToken1.data);
           break;
           
         case Keywords::show_kw:
-          //TBD...
+          if(Keywords::database_kw==theType) {
+            showDatabases();
+          }
+          else {
+            if(active) {
+              return active->handleCommand(aUserInput);
+            }
+            return StatusResult(false,gNoDatabaseSpecified);
+          }
           break;
           
         case Keywords::use_kw:
-          //TBD...
+        {
+          Token theDBName = theTokenizer.tokenAt(2);
+          return useDatabase(theDBName.data);
+        }
           break;
           
         default:
