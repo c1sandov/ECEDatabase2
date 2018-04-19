@@ -9,6 +9,7 @@
 #include "Tokenizer.hpp"
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 namespace SF {
   
@@ -147,7 +148,7 @@ namespace SF {
     std::string theResult("");
     
     while(EOF!=theChar) {
-      if(isalnum(theChar) or '_'==theChar) {
+      if(isalnum(theChar) || '_'==theChar) {
         theResult+=input.get();
         theChar=input.peek();
       }
@@ -236,7 +237,7 @@ namespace SF {
         temp.push_back(input.get());
         tokens.push_back(Token(TokenType::operators,temp));
       }
-      else if(isnumber(theChar)) {
+      else if(isdigit(theChar)) {
         std::string theString=readWhile(numbers);
         tokens.push_back(Token(TokenType::number,theString));
       }
