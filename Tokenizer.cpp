@@ -27,7 +27,7 @@ namespace SF {
     std::make_pair("column", Keywords::column_kw),
     std::make_pair("create", Keywords::create_kw),
     std::make_pair("database", Keywords::database_kw),
-    std::make_pair("databases", Keywords::database_kw),
+    std::make_pair("databases", Keywords::databases_kw),
     std::make_pair("datetime", Keywords::datetime_kw),
     std::make_pair("decimal", Keywords::decimal_kw),
     std::make_pair("delete", Keywords::delete_kw),
