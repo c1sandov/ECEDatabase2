@@ -112,12 +112,8 @@ namespace SF {
     return StatusResult{true};
   }
   
-  StatusResult Storage::addEntity(const std::string &aName, uint32_t aPos) {
-    master.header.count++;
-    master.entities[master.header.count].hashId=Storage::hashString(aName.c_str());
-    master.entities[master.header.count].blockId=aPos;
-    master.header.dirty=true;
-    return StatusResult{true};
+  StatusResult addSchema(const std::string &aName, Block &aBlock) {
+    return StatusResult{false,gReadError};
   }
   
 }

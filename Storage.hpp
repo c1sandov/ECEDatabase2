@@ -32,7 +32,7 @@ namespace SF {
       id=aCopy.id;
     }
     
-    char      type;   //block type {[F]ree, [M]aster(singleton), [E]ntity, [R]ecord}
+    char      type;   //block type {[F]ree, [M]aster(singleton), [S]chema, [R]ecord}
     bool      dirty;  //currently unused...
     uint16_t  count;  //generic usage...
     uint32_t  id;     //id in most block; 1st free block for master...
@@ -61,7 +61,7 @@ namespace SF {
     //we use attributes[0] as table name...
     BlockHeader   header;
     union {
-      EntityDef     entities[(kBlockSize-sizeof(BlockHeader)/sizeof(EntityDef))]; //list of 95 tables...
+      EntityDef     schemas[(kBlockSize-sizeof(BlockHeader)/sizeof(EntityDef))]; //list of 95 tables...
       AttributeDef  attributes[(kBlockSize-sizeof(BlockHeader)/sizeof(AttributeDef))]; //schema fields...
       char          data[kBlockSize-sizeof(BlockHeader)];
     };
@@ -92,10 +92,10 @@ namespace SF {
     
     ~Storage();
     
-    StatusResult makeEmpty(const std::string aName);
+    StatusResult    makeEmpty(const std::string aName);
     
-    StatusResult addEntity(const std::string &aName, uint32_t aPos);
-    
+    StatusResult    addSchema(const std::string &aName, Block &aBlock);
+
     static uint32_t hashString(const char* aString);
     
     friend class Database;
