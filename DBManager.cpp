@@ -88,7 +88,10 @@ namespace SF {
           break;
           
         case Keywords::drop_kw:
-          theResult=dropDatabase(theToken1.data);
+          {
+            Token theNameToken = theTokenizer.tokenAt(2);
+            theResult=dropDatabase(theNameToken.data);
+          }
           break;
           
         case Keywords::show_kw:
